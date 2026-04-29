@@ -186,3 +186,21 @@ Assim que voce me responder, eu vou te guiar para escrever a primeira parte real
 - problema que ele resolve
 - publico alvo
 - primeira tela
+
+## 13. Definicao inicial do projeto
+
+### Nome do projeto
+
+Sistema de Homologacao
+
+### Problema principal
+
+Organizar os registros de indicadores diários de forma simples, local e sincronizada.
+
+### Publico alvo inicial
+
+Equipe de homologacao.
+
+### Versao 1 da ideia
+
+O sistema vai começar pequeno, focado em registrar homologacoes com rapidez, guardar os dados localmente e depois enviar tudo para um dashboard web.
