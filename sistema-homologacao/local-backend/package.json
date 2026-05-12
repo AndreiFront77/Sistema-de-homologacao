@@ -1,0 +1,17 @@
+{
+  "name": "sistema-homologacao-local-backend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "backup:sql": "node backup-sql.js",
+    "restore:sql": "node restore-sql.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

@@ -1,0 +1,146 @@
+<div class="dashboard-wrapper">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>📊 Dashboard de Indicadores</h1>
+    <div class="header-actions">
+      <button class="btn btn-info" (click)="refresh()" [disabled]="loading">🔄 Atualizar</button>
+      <button class="btn btn-success" (click)="exportCSV()">📥 CSV</button>
+      <button class="btn btn-warning" (click)="exportJSON()">📥 JSON</button>
+      <button class="btn btn-secondary" (click)="goHome()">⬅ Voltar</button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-box">
+    <p>⏳ Carregando dashboard...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-box">
+    <p><strong>❌ Erro:</strong> {{ error }}</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error" class="dashboard-content">
+    <!-- Summary Cards -->
+    <div class="cards-grid">
+      <div class="card card-blue">
+        <div class="card-icon">📋</div>
+        <h3>Total de Indicadores</h3>
+        <p class="card-value">{{ totalIndicadores }}</p>
+      </div>
+
+      <div class="card card-green">
+        <div class="card-icon">🏢</div>
+        <h3>Total de Cards</h3>
+        <p class="card-value">{{ totalCards }}</p>
+      </div>
+
+      <div class="card card-red">
+        <div class="card-icon">⚠️</div>
+        <h3>Total de Bugs</h3>
+        <p class="card-value">{{ totalBugs }}</p>
+      </div>
+
+      <div class="card card-orange">
+        <div class="card-icon">✅</div>
+        <h3>Taxa de Conclusão</h3>
+        <p class="card-value">{{ taxaConclusao }}%</p>
+      </div>
+    </div>
+
+    <!-- Status Table -->
+    <div class="table-section" *ngIf="statusData.length > 0">
+      <h2>📊 Status dos Indicadores</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Concluídos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of statusData">
+            <td><strong>{{ translateStatus(item.status) }}</strong></td>
+            <td>{{ item.total }}</td>
+            <td>{{ item.concluidos }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Clients Table -->
+    <div class="table-section" *ngIf="clientData.length > 0">
+      <h2>🏢 Indicadores por Cliente</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Cards</th>
+            <th>Total</th>
+            <th>Concluídos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of clientData">
+            <td>{{ client.cliente }}</td>
+            <td>{{ client.cards }}</td>
+            <td>{{ client.total }}</td>
+            <td>{{ client.concluidos }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Monthly Table -->
+    <div class="table-section" *ngIf="monthlyData.length > 0">
+      <h2>📅 Dados Mensais</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Ano</th>
+            <th>Total</th>
+            <th>Concluídos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let month of monthlyData">
+            <td>{{ month.mes }}</td>
+            <td>{{ month.ano }}</td>
+            <td>{{ month.total }}</td>
+            <td>{{ month.concluidos }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Bugs Table -->
+    <div class="table-section" *ngIf="bugDataArray.length > 0">
+      <!-- Chart: Bugs por Categoria -->
+      <div class="chart-wrapper">
+        <canvas baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          chartType="bar">
+        </canvas>
+      </div>
+      <h2>🐛 Bugs por Categoria</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th>Quantidade</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bug of bugDataArray">
+            <td>{{ bug.categoria }}</td>
+            <td>{{ bug.quantidade }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
