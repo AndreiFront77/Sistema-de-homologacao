@@ -1,8 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, combineLatest, of, throwError } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { getApiBaseUrl } from './api-base';
+import { IndicadorService } from './indicador.service';
+import { HomologacaoService } from './homologacao.service';
+import {
+  buildBugTotalsFromIndicadores,
+  buildClientStatsFromIndicadores,
+  buildMonthlyStatsFromIndicadores,
+  buildStatusStatsFromIndicadores
+} from './inconsistency-catalog';
 
 export interface DashboardStats {
   monthly: any[];
@@ -20,16 +28,30 @@ export class DashboardService {
   private dashboardStatsSubject = new BehaviorSubject<DashboardStats | null>(null);
   public dashboardStats$ = this.dashboardStatsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private indicadorService: IndicadorService,
+    private homologacaoService: HomologacaoService
+  ) {}
 
   /**
    * Carregar estatísticas completas do dashboard
    */
   loadDashboardStats(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.apiBase}/dashboard/analytics`).pipe(
-      map((response: any) => response),
+    return combineLatest([
+      this.indicadorService.getIndicadores(),
+      this.homologacaoService.cards$
+    ]).pipe(
+      map(([indicadoresResponse, cards]) => this.buildDashboardStats(indicadoresResponse.indicadores || [], cards || [])),
       tap((stats) => this.cacheDashboardStats(stats)),
-      catchError(this.handleError)
+      catchError(() => {
+        const cached = this.getCachedDashboardStats();
+        if (cached) {
+          return of(cached);
+        }
+
+        return of(this.buildDashboardStats([], []));
+      })
     );
   }
 
@@ -50,8 +72,8 @@ export class DashboardService {
    * Obter estatísticas de status
    */
   getStatusStats(): Observable<any[]> {
-    return this.http.get<any>(`${this.apiBase}/dashboard/status-stats`).pipe(
-      map((response: any) => response.status || []),
+    return combineLatest([this.indicadorService.getIndicadores(), this.homologacaoService.cards$]).pipe(
+      map(([response, cards]) => buildStatusStatsFromIndicadores(((response.indicadores || []).length > 0 ? response.indicadores || [] : cards || []) as any[])),
       catchError(this.handleError)
     );
   }
@@ -60,8 +82,8 @@ export class DashboardService {
    * Obter estatísticas de clientes
    */
   getClientStats(): Observable<any[]> {
-    return this.http.get<any>(`${this.apiBase}/dashboard/client-stats`).pipe(
-      map((response: any) => response.clients || []),
+    return combineLatest([this.indicadorService.getIndicadores(), this.homologacaoService.cards$]).pipe(
+      map(([response, cards]) => buildClientStatsFromIndicadores(((response.indicadores || []).length > 0 ? response.indicadores || [] : cards || []) as any[])),
       catchError(this.handleError)
     );
   }
@@ -70,18 +92,35 @@ export class DashboardService {
    * Obter estatísticas de bugs por categoria
    */
   getBugStats(): Observable<any> {
-    return this.http.get<any>(`${this.apiBase}/dashboard/bugs-stats`).pipe(
-      map((response: any) => response.bugs || {}),
+    return combineLatest([this.indicadorService.getIndicadores(), this.homologacaoService.cards$]).pipe(
+      map(([response, cards]) => buildBugTotalsFromIndicadores(((response.indicadores || []).length > 0 ? response.indicadores || [] : cards || []) as any[])),
       catchError(this.handleError)
     );
+  }
+
+  getLocalBugStatsSnapshot(): Record<string, number> {
+    try {
+      const indicadores = JSON.parse(localStorage.getItem('sistema-homologacao.indicadores') || '[]');
+      const cards = JSON.parse(localStorage.getItem('cards') || '[]');
+      const sourceItems = Array.isArray(indicadores) && indicadores.length > 0 ? indicadores : cards;
+      const detailedBugStats = buildBugTotalsFromIndicadores(sourceItems as any[]);
+      if (Object.keys(detailedBugStats).length > 0) {
+        return detailedBugStats;
+      }
+
+      const totalFromSummaries = (sourceItems || []).reduce((acc: number, item: any) => acc + Number(item?.somatorio_bugs || 0), 0);
+      return totalFromSummaries > 0 ? { sem_detalhamento: totalFromSummaries } : {};
+    } catch {
+      return {};
+    }
   }
 
   /**
    * Obter resumo mensal
    */
   getMonthlySummary(): Observable<any[]> {
-    return this.http.get<any>(`${this.apiBase}/dashboard/summary`).pipe(
-      map((response: any) => response.summary || []),
+    return combineLatest([this.indicadorService.getIndicadores(), this.homologacaoService.cards$]).pipe(
+      map(([response, cards]) => buildMonthlyStatsFromIndicadores(((response.indicadores || []).length > 0 ? response.indicadores || [] : cards || []) as any[])),
       catchError(this.handleError)
     );
   }
@@ -112,5 +151,20 @@ export class DashboardService {
     } catch {
       // Cache local é opcional; a resposta ainda foi carregada com sucesso.
     }
+  }
+
+  private buildDashboardStats(indicadores: any[], cards: any[] = []): DashboardStats {
+    const sourceItems = indicadores.length > 0 ? indicadores : cards;
+    const monthly = buildMonthlyStatsFromIndicadores(sourceItems as any[]);
+    const status = buildStatusStatsFromIndicadores(sourceItems as any[]);
+    const clients = buildClientStatsFromIndicadores(sourceItems as any[]);
+    const bugs = buildBugTotalsFromIndicadores(sourceItems as any[]);
+
+    return {
+      monthly,
+      status,
+      clients,
+      bugs
+    };
   }
 }

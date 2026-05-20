@@ -618,6 +618,33 @@ async function exportToJSON() {
   });
 }
 
+async function clearAllData() {
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run('PRAGMA foreign_keys = OFF;');
+
+      db.run('DELETE FROM indicador_bugs;', (bugsErr) => {
+        if (bugsErr) return reject(bugsErr);
+
+        db.run('DELETE FROM indicadores;', (indicadoresErr) => {
+          if (indicadoresErr) return reject(indicadoresErr);
+
+          db.run('DELETE FROM cards;', (cardsErr) => {
+            if (cardsErr) return reject(cardsErr);
+
+            db.run('VACUUM;', (vacuumErr) => {
+              db.run('PRAGMA foreign_keys = ON;');
+
+              if (vacuumErr) return reject(vacuumErr);
+              resolve({ ok: true });
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
 // Inicializar e exportar
 initSchema().catch(console.error);
 
@@ -639,5 +666,6 @@ module.exports = {
   getClientStatistics,
   getDashboardStats,
   exportToCSV,
-  exportToJSON
+  exportToJSON,
+  clearAllData
 };

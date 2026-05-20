@@ -34,6 +34,9 @@ import { Observable } from 'rxjs';
           <button class="btn-dashboard" (click)="irParaDashboard()">
             📊 Dashboard
           </button>
+          <button class="btn-reset" (click)="resetData()">
+            🧹 Limpar dados
+          </button>
           <button class="btn-new-card" (click)="openCreateCardModal()">
             ➕ Novo card
           </button>
@@ -175,6 +178,22 @@ import { Observable } from 'rxjs';
     }
 
     .btn-new-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn-reset {
+      background: #fff;
+      color: #b42318;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-reset:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
@@ -343,7 +362,24 @@ export class NavbarComponent {
   }
 
   irParaDashboard(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/smart-dashboards']);
+  }
+
+  resetData(): void {
+    const confirmed = confirm('Isso vai apagar cards, indicadores e bugs locais. Continuar?');
+    if (!confirmed) {
+      return;
+    }
+
+    this.homologacaoService.clearAllData().subscribe({
+      next: () => {
+        alert('✅ Dados limpos com sucesso!');
+        window.location.reload();
+      },
+      error: () => {
+        alert('❌ Não foi possível limpar os dados.');
+      }
+    });
   }
 
   triggerFileInput(): void {

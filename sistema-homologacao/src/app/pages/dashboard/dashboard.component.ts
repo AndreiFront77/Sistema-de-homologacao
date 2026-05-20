@@ -1,12 +1,13 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { DashboardService } from '../../services/dashboard.service';
 import { ExportService } from '../../services/export.service';
+import { normalizeInconsistencyLabel } from '../../services/inconsistency-catalog';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { NgChartsModule } from 'ng2-charts';
+import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration } from 'chart.js';
 
 Chart.register(...registerables);
@@ -14,11 +15,13 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, NgChartsModule],
+  imports: [CommonModule, HttpClientModule, BaseChartDirective],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  @ViewChild(BaseChartDirective) chart: BaseChartDirective | undefined;
+  
   private destroy$ = new Subject<void>();
   loading = false;
   error: string | null = null;
@@ -206,6 +209,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.barChartData.labels = [];
       this.barChartData.datasets[0].data = [];
       this.barChartData.datasets[0].backgroundColor = [];
+      this.cdr.detectChanges();
       return;
     }
 
@@ -221,6 +225,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.barChartData.labels = labels;
     this.barChartData.datasets[0].data = data as number[];
     this.barChartData.datasets[0].backgroundColor = colors;
+    
+    // Trigger change detection and update chart
+    this.cdr.detectChanges();
+    
+    // Force chart update if chart is initialized
+    if (this.chart) {
+      setTimeout(() => {
+        this.chart?.update();
+      }, 100);
+    }
   }
 
   public translateStatus(status: any): string {
@@ -235,29 +249,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   public formatBugName(key: any): string {
-    const k = String(key || '');
-    const translations: { [key: string]: string } = {
-      'icone': 'Ícone',
-      'descricao': 'Descrição',
-      'links': 'Links',
-      'download': 'Download',
-      'deformacoes': 'Deformações',
-      'medidas': 'Medidas',
-      'etiqueta_proj_gab': 'Etiqueta/Proj/Gab',
-      'aplicacao': 'Aplicação',
-      'cadastro': 'Cadastro',
-      'des_cabecalho': 'Desenho de Cabeçalho',
-      'reg_configuracao': 'Regras de Configuração',
-      'ficha': 'Ficha',
-      'calculos_recursos': 'Cálculos de Recursos',
-      'furacao': 'Furação',
-      'usinagem': 'Usinagem',
-      'roteiro': 'Roteiro',
-      'relatorio_pedido': 'Relatório de Pedido',
-      'lista_pecas': 'Lista de Peças',
-      'xml': 'XML'
-    };
-    return translations[k] || k;
+    return normalizeInconsistencyLabel(String(key || ''));
   }
 
   ngOnDestroy(): void {
@@ -266,6 +258,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   public goHome(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/landing']);
+  }
+
+  public goToBugsGeral(): void {
+    this.router.navigate(['/bugs-geral']);
+  }
+  public goToSmartDashboards(): void {
+    this.router.navigate(['/smart-dashboards']);
   }
 }

@@ -1,0 +1,155 @@
+<div class="smart-dashboards-wrapper">
+  <!-- Header -->
+  <div class="smart-header">
+    <button class="btn-back" (click)="goBack()" title="Voltar">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </button>
+    <h1>📊 Dashboards Inteligentes</h1>
+    <!-- Cards button only shows when viewing a specific dashboard -->
+    <button *ngIf="selectedDashboard" class="btn-cards" (click)="goToCards()" title="Ir para Cards">
+      📋 Cards
+    </button>
+  </div>
+
+  <!-- Selection View -->
+  <div *ngIf="!selectedDashboard" class="selection-view">
+    <div class="dashboards-grid">
+      <div
+        *ngFor="let dashboard of dashboards"
+        class="dashboard-card"
+        [style.border-left-color]="dashboard.color"
+        (click)="selectDashboard(dashboard.id)"
+      >
+        <div class="card-icon">{{ dashboard.icon }}</div>
+        <div class="card-content">
+          <h3>{{ dashboard.title }}</h3>
+          <p>{{ dashboard.description }}</p>
+        </div>
+        <div class="card-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard View -->
+  <div *ngIf="selectedDashboard" class="dashboard-view">
+    <div class="dashboard-header">
+      <button class="btn-back-small" (click)="backToSelection()">
+        <i class="bi bi-arrow-left"></i> Voltar à Seleção
+      </button>
+      <h2>{{ getSelectedDashboard()?.title }}</h2>
+    </div>
+
+    <!-- Dashboard content will be loaded here based on selectedDashboard -->
+    <div class="dashboard-container">
+      <!-- BUG por Categoria -->
+      <app-bug-categoria
+        *ngIf="selectedDashboard === 'bug-categoria'"
+      ></app-bug-categoria>
+
+      <!-- BUG por Subcategoria -->
+      <app-bug-subcategoria
+        *ngIf="selectedDashboard === 'bug-subcategoria'"
+      ></app-bug-subcategoria>
+
+      <!-- Bug Catálogo -->
+      <app-bug-catalogo
+        *ngIf="selectedDashboard === 'bug-catalogo'"
+      ></app-bug-catalogo>
+
+      <!-- Bug 3D -->
+      <app-bug-3d
+        *ngIf="selectedDashboard === 'bug-3d'"
+      ></app-bug-3d>
+
+      <!-- Bug Acabamento -->
+      <app-bug-acabamento
+        *ngIf="selectedDashboard === 'bug-acabamento'"
+      ></app-bug-acabamento>
+
+      <!-- Bug Opções do Componente -->
+      <app-bug-opcoes
+        *ngIf="selectedDashboard === 'bug-opcoes-componente'"
+      ></app-bug-opcoes>
+
+      <!-- Bug Produção -->
+      <app-bug-producao
+        *ngIf="selectedDashboard === 'bug-producao'"
+      ></app-bug-producao>
+
+      <!-- Bug Integração Sistema Fábrica -->
+      <app-bug-integracao
+        *ngIf="selectedDashboard === 'bug-integracao-fabrica'"
+      ></app-bug-integracao>
+
+      <!-- Indicadores por Modelador -->
+      <app-indicadores-modelador
+        *ngIf="selectedDashboard === 'indicadores-modelador'"
+      ></app-indicadores-modelador>
+
+      <!-- Nível dos Componentes -->
+      <app-nivel-componentes
+        *ngIf="selectedDashboard === 'nivel-componentes'"
+      ></app-nivel-componentes>
+
+      <!-- Bugs por Nível -->
+      <app-bugs-nivel
+        *ngIf="selectedDashboard === 'bugs-por-nivel'"
+      ></app-bugs-nivel>
+
+      <!-- Média Dias por Nível -->
+      <app-media-dias-nivel
+        *ngIf="selectedDashboard === 'media-dias-nivel'"
+      ></app-media-dias-nivel>
+
+      <!-- Componentes e Bugs por Mês -->
+      <app-componentes-mes
+        *ngIf="selectedDashboard === 'componentes-bugs-mes'"
+      ></app-componentes-mes>
+
+      <!-- Componentes por Cliente -->
+      <app-componentes-cliente
+        *ngIf="selectedDashboard === 'componentes-cliente'"
+      ></app-componentes-cliente>
+
+      <!-- Componentes e Bugs por Cliente -->
+      <app-componentes-bugs-cliente
+        *ngIf="selectedDashboard === 'componentes-bugs-cliente'"
+      ></app-componentes-bugs-cliente>
+
+      <!-- Média Dias por Componente -->
+      <app-media-dias-componentes
+        *ngIf="selectedDashboard === 'media-dias-componentes'"
+      ></app-media-dias-componentes>
+
+      <!-- Status de Homologação -->
+      <app-status-homologacao
+        *ngIf="selectedDashboard === 'status-homologacao'"
+      ></app-status-homologacao>
+
+      <!-- Totais Gerais -->
+      <app-totais-gerais
+        *ngIf="selectedDashboard === 'totais-gerais'"
+      ></app-totais-gerais>
+
+      <!-- Records Cliente -->
+      <app-records-cliente
+        *ngIf="selectedDashboard === 'records-cliente'"
+      ></app-records-cliente>
+
+      <!-- Bugs em um Componente -->
+      <app-bugs-componente
+        *ngIf="selectedDashboard === 'bugs-componente'"
+      ></app-bugs-componente>
+
+      <!-- Homologação em um Componente -->
+      <app-homologacao-componente
+        *ngIf="selectedDashboard === 'homologacao-componente'"
+      ></app-homologacao-componente>
+
+      <!-- Dias Homologação em um Componente -->
+      <app-dias-componente
+        *ngIf="selectedDashboard === 'dias-homologacao-componente'"
+      ></app-dias-componente>
+    </div>
+  </div>
+</div>

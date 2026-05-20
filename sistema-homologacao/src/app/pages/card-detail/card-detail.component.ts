@@ -1116,6 +1116,6 @@ ${currentItem.description}`
   }
 
   voltar(): void {
-    void this.router.navigate(['/']);
+    void this.router.navigate(['/landing']);
   }
 }

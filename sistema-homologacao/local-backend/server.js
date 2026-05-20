@@ -17,7 +17,8 @@ const {
   getClientStatistics,
   getDashboardStats,
   exportToCSV,
-  exportToJSON
+  exportToJSON,
+  clearAllData
 } = require('./db');
 
 const app = express();
@@ -37,6 +38,15 @@ app.post('/api/cards/import', async (req, res) => {
     }
 
     res.json({ ok: true, processed });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: String(err?.message || err) });
+  }
+});
+
+app.post('/api/reset-data', async (req, res) => {
+  try {
+    await clearAllData();
+    res.json({ ok: true, message: 'Dados limpos com sucesso' });
   } catch (err) {
     res.status(500).json({ ok: false, message: String(err?.message || err) });
   }

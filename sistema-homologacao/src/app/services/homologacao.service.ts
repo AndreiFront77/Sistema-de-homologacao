@@ -32,9 +32,9 @@ export class HomologacaoService {
       this.http.post<{ ok: boolean; processed: number }>(`${this.apiUrl}/cards/import`, { cards: incomingCards }).pipe(
         switchMap(() => this.refreshCardsFromBackend()),
         catchError(() => {
-          const mergedCards = this.mergeCards(this.cardsSubject.value, incomingCards);
-          this.persistCards(mergedCards);
-          return of(mergedCards);
+          const normalizedCards = incomingCards.map((card) => this.normalizeCard(card));
+          this.persistCards(normalizedCards);
+          return of(normalizedCards);
         })
       ).subscribe();
 
@@ -45,6 +45,18 @@ export class HomologacaoService {
         this.indicadorService.importBatch(indicadoresPayload as Indicador[]).subscribe();
       }
     }
+  }
+
+  clearAllData(): Observable<{ ok: boolean; message: string }> {
+    return this.http.post<{ ok: boolean; message: string }>(`${this.apiUrl}/reset-data`, {}).pipe(
+      tap(() => {
+        localStorage.removeItem('cards');
+        localStorage.removeItem('homologacoes');
+        this.cardsSubject.next([]);
+        this.homologacoesSubject.next([]);
+        this.resetFilters();
+      })
+    );
   }
 
   createManualCard(card: {
@@ -339,6 +351,7 @@ export class HomologacaoService {
       mes: String(indicador.mes ?? 'JANEIRO'),
       ano: Number(indicador.ano ?? new Date().getFullYear()),
       somatorio_bugs: Number(indicador.somatorio_bugs ?? 0),
+      bugs: { ...(indicador.bugs || {}) },
       observacoes: String(indicador.observacoes ?? ''),
       updated_at: new Date().toISOString()
     };

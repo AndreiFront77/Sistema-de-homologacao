@@ -1,0 +1,98 @@
+<div class="bugs-geral-container">
+  <div class="bugs-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()" title="Voltar ao Dashboard">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div>
+        <h1>Dashboard - Bugs Geral</h1>
+        <p class="subtitle">Análise de Inconsistências por Subcategoria</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="refresh()" [disabled]="loading">
+        <i class="bi bi-arrow-clockwise"></i>
+        Atualizar
+      </button>
+      <button class="btn btn-secondary" (click)="exportData()" [disabled]="loading || bugsArray.length === 0">
+        <i class="bi bi-download"></i>
+        Exportar CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Carregando dados de inconsistências...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <i class="bi bi-exclamation-triangle"></i>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error" class="bugs-content">
+    <!-- Summary Card -->
+    <div class="summary-section">
+      <div class="summary-card metric-status-high">
+        <span class="metric-label">Total de Inconsistências</span>
+        <strong class="metric-value">{{ totalBugs }}</strong>
+      </div>
+      <div class="summary-card metric-status-medium">
+        <span class="metric-label">Subcategorias com Inconsistências</span>
+        <strong class="metric-value">{{ bugsArray.filter(b => b.quantidade > 0).length }}</strong>
+      </div>
+      <div class="summary-card metric-status-low">
+        <span class="metric-label">Total de Subcategorias</span>
+        <strong class="metric-value">{{ bugsArray.length }}</strong>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+      <h2>Inconsistências por Subcategoria</h2>
+      <div class="chart-container">
+        <canvas
+          baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          type="bar"
+        ></canvas>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-section">
+      <h2>Detalhamento Completo</h2>
+      <div class="table-wrapper">
+        <table class="bugs-table">
+          <thead>
+            <tr>
+              <th>Subcategoria</th>
+              <th class="numeric">Quantidade</th>
+              <th class="numeric">Percentual</th>
+              <th class="numeric">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let bug of bugsArray" [class.zero-value]="bug.quantidade === 0">
+              <td class="category-name">{{ bug.label }}</td>
+              <td class="numeric value">{{ bug.quantidade }}</td>
+              <td class="numeric percentage">
+                {{ totalBugs > 0 ? ((bug.quantidade / totalBugs) * 100).toFixed(1) : 0 }}%
+              </td>
+              <td class="numeric">
+                <span class="status-badge" [ngClass]="'status-' + getUrgencyClass(bug.quantidade)">
+                  {{ bug.quantidade > 0 ? 'Com Inconsistências' : 'OK' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
